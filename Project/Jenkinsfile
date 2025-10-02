@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         VENV_DIR = "venv"
+        PYTHON = "${env.WORKSPACE}/venv/bin/python"
+        PIP = "${env.WORKSPACE}/venv/bin/pip"
     }
 
     stages {
@@ -16,10 +18,9 @@ pipeline {
             steps {
                 sh """
                     python3 -m venv ${VENV_DIR}
-                    source ${VENV_DIR}/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                    pip install dvc[s3]
+                    ${PIP} install --upgrade pip
+                    ${PIP} install -r requirements.txt
+                    ${PIP} install dvc[s3]
                 """
             }
         }
@@ -27,9 +28,7 @@ pipeline {
         stage('Ingest Data') {
             steps {
                 sh """
-                    #!/bin/bash
-                    source venv/bin/activate
-                    python ingestion/ingest.py
+                    ${PYTHON} ingestion/ingest.py
                 """
             }
         }
@@ -37,12 +36,11 @@ pipeline {
         stage('Track with DVC') {
             steps {
                 sh """
-                    source ${VENV_DIR}/bin/activate
-                    dvc add data/ metadata/
+                    ${PYTHON} -m dvc add data/ metadata/
                     git add data.dvc metadata.dvc
                     git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
                     git push origin main
-                    dvc push
+                    ${PYTHON} -m dvc push
                 """
             }
         }
