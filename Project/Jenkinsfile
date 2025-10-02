@@ -36,8 +36,8 @@ pipeline {
         stage('Track with DVC') {
             steps {
                 sh """
-                    ${PYTHON} -m dvc add data/ metadata/
-                    git add data.dvc metadata.dvc
+                    ${PYTHON} -m dvc add Project/data/ Project/metadata/
+                    git add Project/data.dvc Project/metadata.dvc
                     git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
                     git push origin main
                     ${PYTHON} -m dvc push
