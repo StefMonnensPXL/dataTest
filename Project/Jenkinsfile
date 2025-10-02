@@ -21,6 +21,8 @@ pipeline {
                     ${PIP} install --upgrade pip
                     ${PIP} install -r Project/requirements.txt
                     ${PIP} install dvc[s3]
+                    # Verify pandas is installed
+                    ${PIP} list | grep pandas
                 """
             }
         }
@@ -36,8 +38,11 @@ pipeline {
         stage('Track with DVC') {
             steps {
                 sh """
-                    ${PYTHON} -m dvc repro Project/dvc.yaml
-                    git add Project/dvc.yaml Project/dvc.lock
+                    # Set the PATH to include virtual environment first
+                    export PATH="${env.WORKSPACE}/venv/bin:${PATH}"
+                    cd Project
+                    ${PYTHON} -m dvc repro dvc.yaml
+                    git add dvc.yaml dvc.lock
                     git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
                     git push origin main
                     ${PYTHON} -m dvc push
