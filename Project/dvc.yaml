@@ -1,7 +1,7 @@
 # dvc.yaml
 stages:
   ingest_data:
-    cmd: python3 ingestion/ingest.py
+    cmd: ${PYTHON} ingestion/ingest.py
     deps:
       - ingestion/ingest.py
     outs:

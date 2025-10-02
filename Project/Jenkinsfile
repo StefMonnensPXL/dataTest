@@ -63,22 +63,15 @@ pipeline {
         }
 
         stage('Track with DVC') {
-            steps {
-                sh """
-                    cd Project
-                    echo "=== Current DVC status ==="
-                    ${PYTHON} -m dvc status
-                    
-                    echo "=== Running DVC repro ==="
-                    ${PYTHON} -m dvc repro dvc.yaml
-                    
-                    echo "=== DVC completed ==="
-                    git add dvc.yaml dvc.lock
-                    git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
-                    git push origin main
-                    ${PYTHON} -m dvc push
-                """
-            }
-        }
+    steps {
+        sh """
+            cd Project
+            export PYTHON="${PYTHON}"
+            ${PYTHON} -m dvc repro dvc.yaml
+            git add dvc.yaml dvc.lock
+            git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
+            git push origin main
+            ${PYTHON} -m dvc push
+        """
     }
 }
