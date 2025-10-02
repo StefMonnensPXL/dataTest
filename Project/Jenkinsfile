@@ -5,7 +5,6 @@ pipeline {
         VENV_DIR = "venv"
         PYTHON = "${env.WORKSPACE}/venv/bin/python"
         PIP = "${env.WORKSPACE}/venv/bin/pip"
-        PATH = "${env.WORKSPACE}/venv/bin:${env.PATH}"
     }
 
     stages {
@@ -37,10 +36,8 @@ pipeline {
         stage('Track with DVC') {
             steps {
                 sh """
-                    # Make sure we're in the right directory and using the correct Python
-                    cd Project
-                    ${PYTHON} -m dvc repro dvc.yaml
-                    git add dvc.yaml dvc.lock
+                    ${PYTHON} -m dvc repro Project/dvc.yaml
+                    git add Project/dvc.yaml Project/dvc.lock
                     git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
                     git push origin main
                     ${PYTHON} -m dvc push
