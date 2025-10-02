@@ -1,35 +1,44 @@
-import os
 import pandas as pd
+import os
 from datetime import datetime
-import json
 
-DATA_DIR = "../data"
-META_DIR = "../metadata"
+def main():
+    # Create directories within Project folder
+    data_dir = 'data'
+    metadata_dir = 'metadata'
+    os.makedirs(data_dir, exist_ok=True)
+    os.makedirs(metadata_dir, exist_ok=True)
+    
+    # Generate timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Sample data - replace with your actual data ingestion
+    df = pd.DataFrame({
+        'id': [1, 2, 3],
+        'name': ['Alice', 'Bob', 'Charlie'],
+        'value': [100, 200, 300]
+    })
+    
+    # Save files in Project/data and Project/metadata
+    data_file = os.path.join(data_dir, f'data_{timestamp}.csv')
+    metadata_file = os.path.join(metadata_dir, f'metadata_{timestamp}.json')
+    
+    df.to_csv(data_file, index=False)
+    
+    # Create and save metadata
+    metadata = {
+        'timestamp': timestamp,
+        'records': len(df),
+        'columns': list(df.columns),
+        'data_file': data_file
+    }
+    
+    import json
+    with open(metadata_file, 'w') as f:
+        json.dump(metadata, f, indent=2)
+    
+    print(f"Ingested data saved to {data_file}")
+    print(f"Metadata saved to {metadata_file}")
 
-os.makedirs(DATA_DIR, exist_ok=True)
-os.makedirs(META_DIR, exist_ok=True)
-
-# Voorbeeld: nieuwe data genereren (of van een externe bron halen)
-new_data = pd.DataFrame({
-    "id": [1, 2, 3],
-    "value": [10, 20, 30]
-})
-
-# Timestamp voor versieing
-timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-data_file = f"{DATA_DIR}/data_{timestamp}.csv"
-new_data.to_csv(data_file, index=False)
-
-# Metadata voor data lineage
-metadata = {
-    "file": os.path.basename(data_file),
-    "timestamp": timestamp,
-    "num_rows": len(new_data),
-    "columns": list(new_data.columns)
-}
-
-with open(f"{META_DIR}/metadata_{timestamp}.json", "w") as f:
-    json.dump(metadata, f, indent=2)
-
-print(f"Ingested data saved to {data_file}")
-print(f"Metadata saved to {META_DIR}/metadata_{timestamp}.json")
+if __name__ == "__main__":
+    main()
