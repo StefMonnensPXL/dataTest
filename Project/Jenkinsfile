@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    environment {
+        PYTHON_ENV = "python3"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/StefMonnensPXL/dataTest.git', branch: 'main'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'pip install -r requirements.txt'
+                sh 'pip install dvc[s3]'
+            }
+        }
+
+        stage('Ingest Data') {
+            steps {
+                sh 'python ingestion/ingest.py'
+            }
+        }
+
+        stage('Track with DVC') {
+            steps {
+                sh 'dvc add data/ metadata/'
+                sh 'git add data.dvc metadata.dvc'
+                sh 'git commit -m "New data ingested with timestamp" || echo "Nothing to commit"'
+                sh 'git push origin main'
+                sh 'dvc push'
+            }
+        }
+    }
+}
