@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_ENV = "python3"
+        VENV_DIR = "venv"
     }
 
     stages {
@@ -12,26 +12,37 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Setup Python Virtual Env') {
             steps {
-                sh 'pip install -r requirements.txt'
-                sh 'pip install dvc[s3]'
+                sh """
+                    python3 -m venv ${VENV_DIR}
+                    source ${VENV_DIR}/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                    pip install dvc[s3]
+                """
             }
         }
 
         stage('Ingest Data') {
             steps {
-                sh 'python ingestion/ingest.py'
+                sh """
+                    source ${VENV_DIR}/bin/activate
+                    python ingestion/ingest.py
+                """
             }
         }
 
         stage('Track with DVC') {
             steps {
-                sh 'dvc add data/ metadata/'
-                sh 'git add data.dvc metadata.dvc'
-                sh 'git commit -m "New data ingested with timestamp" || echo "Nothing to commit"'
-                sh 'git push origin main'
-                sh 'dvc push'
+                sh """
+                    source ${VENV_DIR}/bin/activate
+                    dvc add data/ metadata/
+                    git add data.dvc metadata.dvc
+                    git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
+                    git push origin main
+                    dvc push
+                """
             }
         }
     }
