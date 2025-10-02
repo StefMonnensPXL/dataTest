@@ -21,14 +21,43 @@ pipeline {
                     ${PIP} install --upgrade pip
                     ${PIP} install -r Project/requirements.txt
                     ${PIP} install dvc[s3]
+                    ${PIP} list | grep pandas
                 """
             }
         }
 
-        stage('Ingest Data') {
+        stage('Debug Structure') {
             steps {
                 sh """
-                    ${PYTHON} Project/ingestion/ingest.py
+                    echo "=== Current directory ==="
+                    pwd
+                    ls -la
+                    
+                    echo "=== Project directory ==="
+                    ls -la Project/
+                    
+                    echo "=== Project/ingestion directory ==="
+                    ls -la Project/ingestion/
+                    
+                    echo "=== DVC.yaml content ==="
+                    cat Project/dvc.yaml
+                """
+            }
+        }
+
+        stage('Test Ingestion') {
+            steps {
+                sh """
+                    echo "=== Testing ingestion script ==="
+                    cd Project
+                    ${PYTHON} ingestion/ingest.py
+                    
+                    echo "=== Checking outputs in Project/ ==="
+                    ls -la
+                    find . -name "*.csv" -type f
+                    
+                    echo "=== Checking for data directory ==="
+                    ls -la data/ || echo "No data directory found"
                 """
             }
         }
@@ -36,8 +65,15 @@ pipeline {
         stage('Track with DVC') {
             steps {
                 sh """
-                    ${PYTHON} -m dvc add data/ metadata/
-                    git add data.dvc metadata.dvc
+                    cd Project
+                    echo "=== Current DVC status ==="
+                    ${PYTHON} -m dvc status
+                    
+                    echo "=== Running DVC repro ==="
+                    ${PYTHON} -m dvc repro dvc.yaml
+                    
+                    echo "=== DVC completed ==="
+                    git add dvc.yaml dvc.lock
                     git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
                     git push origin main
                     ${PYTHON} -m dvc push
