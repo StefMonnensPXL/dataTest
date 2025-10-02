@@ -36,8 +36,8 @@ pipeline {
         stage('Track with DVC') {
     steps {
         sh """
-            ${PYTHON} -m dvc repro
-            git add dvc.yaml dvc.lock
+            ${PYTHON} -m dvc Project/repro
+            git add Project/dvc.yaml Project/dvc.lock
             git commit -m "New data ingested with timestamp" || echo "Nothing to commit"
             git push origin main
             ${PYTHON} -m dvc push
