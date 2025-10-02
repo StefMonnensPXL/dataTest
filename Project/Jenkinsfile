@@ -43,6 +43,6 @@ pipeline {
                     ${PYTHON} -m dvc push
                 """
             }
-}
+        }
     }
 }
