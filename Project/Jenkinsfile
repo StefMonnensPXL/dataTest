@@ -27,7 +27,8 @@ pipeline {
         stage('Ingest Data') {
             steps {
                 sh """
-                    source . venv/bin/activate
+                    #!/bin/bash
+                    source venv/bin/activate
                     python ingestion/ingest.py
                 """
             }
